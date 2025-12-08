@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Christmas Tree By kk</title>
+    <style>
+        /* 修改背景为浅色渐变，匹配 config.html */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            font-family: 'Times New Roman', serif;
+            touch-action: none; /* 禁止浏览器默认的缩放和平移 */
+            user-select: none;  /* 禁止选中文字 */
+            -webkit-user-select: none;
+            position: relative;
+        }
+
+        /* 雪花背景动画 - 匹配 config.html */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: white;
+            font-size: 1em;
+            font-family: Arial, sans-serif;
+            text-shadow: 0 0 5px #fff;
+            animation: fall linear infinite;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        @keyframes fall {
+            0% {
+                top: -10%;
+                opacity: 0.8;
+            }
+            100% {
+                top: 110%;
+                opacity: 0.2;
+            }
+        }
+
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; cursor: grab; }
+        #canvas-container:active { cursor: grabbing; }
+
+        /* UI Overlay */
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10; pointer-events: none;
+            display: flex; flex-direction: column; 
+            align-items: center;
+            padding-top: 40px;
+            box-sizing: border-box;
+            transition: opacity 0.5s ease;
+        }
+        
+        .ui-hidden { opacity: 0 !important; pointer-events: none !important; }
+
+        /* Loading */
+        /* 全屏圣诞主题加载页 */
+        #loader {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top, #264d73 0%, #050d1a 55%, #02040a 100%);
+            overflow: hidden;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .loader-scene {
+            position: relative;
+            width: min(320px, 70vw);
+            height: min(320px, 70vw);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader-moon {
+            position: absolute;
+            top: 10%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fffbe6 0%, #ffd666 35%, #b38f00 80%);
+            box-shadow: 0 0 25px rgba(255, 214, 102, 0.7);
+            opacity: 0.9;
+        }
+
+        .loader-tree {
+            position: relative;
+            width: 60%;
+            height: 80%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.8));
+        }
+
+        .tree-layer {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-left-color: transparent;
+            border-right-color: transparent;
+            border-bottom-style: solid;
+            border-bottom-color: #0f4d31;
+            opacity: 0.95;
+            animation: treeFloat 3s ease-in-out infinite;
+        }
+
+        .tree-layer.layer-1 {
+            bottom: 32%;
+            border-width: 0 min(80px, 26vw) min(95px, 30vw) min(80px, 26vw);
+            animation-delay: 0s;
+        }
+
+        .tree-layer.layer-2 {
+            bottom: 46%;
+            border-width: 0 min(65px, 22vw) min(80px, 26vw) min(65px, 22vw);
+            animation-delay: 0.25s;
+        }
+
+        .tree-layer.layer-3 {
+            bottom: 60%;
+            border-width: 0 min(50px, 18vw) min(65px, 22vw) min(50px, 18vw);
+            animation-delay: 0.5s;
+        }
+
+        .tree-trunk {
+            position: absolute;
+            bottom: 24%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 40px;
+            background: linear-gradient(to bottom, #5c3d1e, #2b1b0d);
+            border-radius: 4px;
+        }
+
+        .tree-star {
+            position: absolute;
+            bottom: 70%;
+            left: 50%;
+            transform: translateX(-50%) rotate(0deg);
+            width: 0;
+            height: 0;
+            margin-left: -12px;
+            border-right: 12px solid transparent;
+            border-bottom: 24px solid #ffd700;
+            border-left: 12px solid transparent;
+            transform-origin: 50% 80%;
+            animation: starTwinkle 1.8s ease-in-out infinite;
+        }
+
+        .tree-star::before,
+        .tree-star::after {
+            content: '';
+            position: absolute;
+            top: 7px;
+            left: -12px;
+            width: 0;
+            height: 0;
+            border-right: 12px solid transparent;
+            border-bottom: 24px solid #ffd700;
+            border-left: 12px solid transparent;
+            transform-origin: 50% 80%;
+        }
+
+        .tree-star::before {
+            transform: rotate(72deg);
+        }
+
+        .tree-star::after {
+            transform: rotate(-72deg);
+        }
+
+        .tree-ornament {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff, #ff4d4f);
+            box-shadow: 0 0 12px rgba(255, 77, 79, 0.7);
+            animation: ornamentGlow 1.6s ease-in-out infinite;
+        }
+
+        .tree-ornament.gold {
+            background: radial-gradient(circle at 30% 30%, #fffbe6, #ffd666);
+            box-shadow: 0 0 14px rgba(255, 214, 102, 0.8);
+        }
+
+        .tree-ornament.green {
+            background: radial-gradient(circle at 30% 30%, #e6fffb, #36cfc9);
+            box-shadow: 0 0 10px rgba(54, 207, 201, 0.8);
+        }
+
+        .tree-ornament.o1 { bottom: 36%; left: 42%; animation-delay: 0s; }
+        .tree-ornament.o2 { bottom: 40%; right: 36%; animation-delay: 0.3s; }
+        .tree-ornament.o3 { bottom: 52%; left: 48%; animation-delay: 0.6s; }
+        .tree-ornament.o4 { bottom: 56%; right: 40%; animation-delay: 0.9s; }
+        .tree-ornament.o5 { bottom: 66%; left: 44%; animation-delay: 1.2s; }
+
+        .loader-garland {
+            position: absolute;
+            bottom: 40%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 40%;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.35);
+            border-top-color: transparent;
+            border-left-color: transparent;
+            border-right-color: transparent;
+            animation: garlandWave 2.4s ease-in-out infinite;
+        }
+
+        .loader-present {
+            position: absolute;
+            bottom: 20%;
+            right: 18%;
+            width: 40px;
+            height: 32px;
+            background: linear-gradient(135deg, #c41e3a, #8c1d2f);
+            border-radius: 4px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+            animation: presentBounce 1.8s ease-in-out infinite;
+        }
+
+        .loader-present::before,
+        .loader-present::after {
+            content: '';
+            position: absolute;
+            background: #ffd700;
+        }
+
+        .loader-present::before {
+            inset: 0 16px;
+        }
+
+        .loader-present::after {
+            inset: -8px 0 auto 0;
+            height: 10px;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .loader-present-ribbon {
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 18px;
+            height: 10px;
+            border-radius: 50% 50% 0 0;
+            border: 2px solid #ffd700;
+            border-bottom: none;
+        }
+
+        .loader-text {
+            margin-top: 24px;
+            text-align: center;
+            color: #fdfcf5;
+        }
+
+        .loader-title {
+            font-family: 'Cinzel', 'Times New Roman', serif;
+            font-size: 20px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+        }
+
+        .loader-subtitle {
+            font-size: 14px;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .loader-subtitle span {
+            color: #ffd666;
+            font-weight: 600;
+        }
+
+        @keyframes treeFloat {
+            0%, 100% { transform: translate(-50%, 0); }
+            50% { transform: translate(-50%, -6px); }
+        }
+
+        @keyframes starTwinkle {
+            0%, 100% { transform: translateX(-50%) scale(1); filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8)); }
+            50% { transform: translateX(-50%) scale(1.1); filter: drop-shadow(0 0 16px rgba(255, 255, 255, 1)); }
+        }
+
+        @keyframes ornamentGlow {
+            0%, 100% { transform: translateY(0); opacity: 0.8; }
+            50% { transform: translateY(-3px); opacity: 1; }
+        }
+
+        @keyframes garlandWave {
+            0%, 100% { transform: translateX(-50%) rotate(2deg); opacity: 0.55; }
+            50% { transform: translateX(-50%) rotate(-2deg); opacity: 0.8; }
+        }
+
+        @keyframes presentBounce {
+            0%, 100% { transform: translateY(0); }
+            20% { transform: translateY(-6px); }
+            40% { transform: translateY(0); }
+            60% { transform: translateY(-3px); }
+            80% { transform: translateY(0); }
+        }
+
+        /* Typography */
+        h1 { 
+            color: #fceea7; font-size: 8vw; 
+            max-size: 56px; margin: 0; font-weight: 400; 
+            letter-spacing: 6px; 
+            text-shadow: 0 0 50px rgba(252, 238, 167, 0.6); 
+            background: linear-gradient(to bottom, #fff, #eebb66);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-family: 'Cinzel', 'Times New Roman', serif;
+            opacity: 0.9; transition: opacity 0.5s ease;
+            text-align: center; pointer-events: none;
+        }
+        @media (min-width: 768px) { h1 { font-size: 56px; } }
+
+        /* Controls */
+        .controls-wrapper {
+            position: absolute; top: 100px; right: 20px;        
+            pointer-events: auto;
+            display: flex; flex-direction: column; align-items: flex-end;
+            gap: 10px; z-index: 20;
+            transition: opacity 0.5s ease;
+        }
+
+        .btn-group {
+            display: flex; flex-direction: column; gap: 10px; align-items: flex-end;
+        }
+
+        .control-btn {
+            background: rgba(20, 20, 20, 0.6); 
+            border: 1px solid rgba(212, 175, 55, 0.4); 
+            color: #d4af37; padding: 10px 20px; 
+            cursor: pointer; text-transform: uppercase; 
+            letter-spacing: 2px; font-size: 10px;
+            transition: all 0.4s;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px); min-width: 120px;
+        }
+        
+        .control-btn.active {
+            background: rgba(212, 175, 55, 0.8); color: #000;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+        }
+        .control-btn:hover { 
+            background: #d4af37; color: #000; 
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+        
+        .hint-text {
+            color: rgba(212, 175, 55, 0.5); font-size: 9px;
+            letter-spacing: 1px; text-transform: uppercase;
+            text-align: right; margin-top: 5px; max-width: 200px;
+        }
+
+        input[type="file"] { display: none; }
+
+        /* Mode Buttons (Right Bottom) - 1列多行布局 */
+        #mode-bar {
+            position: fixed;
+            bottom: 30px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 20;
+            pointer-events: auto;
+        }
+        .mode-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(160, 80, 90, 0.7) 0%, rgba(60, 100, 80, 0.7) 100%);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(200, 180, 120, 0.6);
+            color: #f0f0f0;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(100, 60, 70, 0.3);
+        }
+        .mode-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(100, 60, 70, 0.5);
+            border-color: rgba(200, 180, 120, 0.9);
+        }
+        .mode-btn:active {
+            transform: scale(0.95);
+            background: linear-gradient(135deg, rgba(80, 120, 100, 0.85) 0%, rgba(60, 100, 80, 0.85) 100%);
+        }
+        
+        /* Webcam feedback */
+        #webcam-wrapper {
+            position: fixed; bottom: 100px; left: 20px;
+            width: 120px; height: 90px;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            box-shadow: 0 0 20px rgba(0,0,0,0.9);
+            border-radius: 4px; overflow: hidden;
+            opacity: 0; pointer-events: none;
+            z-index: 150; background: #000;
+            transition: opacity 0.5s ease;
+        }
+        #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        #debug-info {
+            display: none; /* 隐藏调试信息 */
+        }
+
+        /* Toast 通知容器 */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: linear-gradient(135deg, rgba(160, 80, 90, 0.9) 0%, rgba(60, 100, 80, 0.9) 100%);
+            border: 2px solid rgba(200, 180, 120, 0.7);
+            border-radius: 12px;
+            padding: 14px 20px;
+            color: #f0f0f0;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 25px rgba(100, 60, 70, 0.4), 0 0 20px rgba(150, 130, 100, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 280px;
+            max-width: 400px;
+            opacity: 0;
+            transform: translateX(120%);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, rgba(60, 100, 80, 0.9) 0%, rgba(80, 120, 100, 0.9) 100%);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, rgba(160, 80, 90, 0.9) 0%, rgba(180, 90, 100, 0.9) 100%);
+        }
+
+        .toast.warning {
+            background: linear-gradient(135deg, rgba(180, 140, 80, 0.9) 0%, rgba(160, 120, 70, 0.9) 100%);
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .toast-text {
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        /* 圣诞主题加载提示 - 低饱和度配色 */
+        #loading-toast {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(160, 80, 90, 0.85) 0%, rgba(60, 100, 80, 0.85) 100%);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(200, 180, 120, 0.6);
+            border-radius: 16px;
+            padding: 14px 22px;
+            color: #f0f0f0;
+            font-size: 11px;
+            letter-spacing: 1px;
+            z-index: 150;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transform: translateX(120%);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            pointer-events: none;
+            box-shadow: 0 8px 25px rgba(100, 60, 70, 0.3), 0 0 20px rgba(150, 130, 100, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #loading-toast::before {
+            content: '🎄';
+            position: absolute;
+            left: -5px;
+            top: -5px;
+            font-size: 20px;
+            opacity: 0.3;
+            animation: snowfall 3s infinite;
+        }
+
+        #loading-toast::after {
+            content: '❄️';
+            position: absolute;
+            right: -5px;
+            bottom: -5px;
+            font-size: 16px;
+            opacity: 0.3;
+            animation: snowfall 3s 1.5s infinite;
+        }
+
+        @keyframes snowfall {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(5px) rotate(180deg); opacity: 0.6; }
+        }
+
+        #loading-toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top-color: rgba(200, 180, 120, 0.8);
+            border-right-color: rgba(200, 180, 120, 0.8);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        .toast-text {
+            font-weight: 500;
+            text-transform: uppercase;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 隐私说明 - 圣诞主题 */
+        #privacy-notice {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 8px 20px;
+            
+            color: rgba(255, 215, 0, 0.8);
+            font-size: 8px;
+            text-align: center;
+            letter-spacing: 0.5px;
+            z-index: 50;
+            font-weight: 300;
+        }
+
+        /* 使用说明按钮 */
+        #help-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c41e3a 0%, #165b33 100%);
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            pointer-events: auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(196, 30, 58, 0.4), 0 0 20px rgba(255, 215, 0, 0.2);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        #help-btn:hover {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 6px 25px rgba(196, 30, 58, 0.6), 0 0 30px rgba(255, 215, 0, 0.4);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .help-tooltip {
+            position: absolute;
+            top: 50%;
+            right: 60px;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #c41e3a 0%, #165b33 100%);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            white-space: nowrap;
+            border: 1px solid #ffd700;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            letter-spacing: 0.5px;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        .help-tooltip::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid #165b33;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(-50%); }
+            50% { transform: translateY(-55%); }
+        }
+
+        /* 使用说明弹窗 - 圣诞主题 */
+        #help-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        #help-modal.show {
+            display: flex;
+        }
+
+        .help-content {
+            background: linear-gradient(135deg, #1a0a0e 0%, #0a1f14 100%);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            padding: 35px 40px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox 隐藏滚动条 */
+            box-shadow: 0 10px 50px rgba(196, 30, 58, 0.5), 0 0 40px rgba(255, 215, 0, 0.3);
+            position: relative;
+            animation: slideDown 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* WebKit 浏览器隐藏滚动条，仅用于使用说明弹窗内容区域 */
+        .help-content::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .help-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .help-title {
+            color: #ffd700;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .help-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c41e3a 0%, #165b33 100%);
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .help-close:hover {
+            transform: rotate(90deg) scale(1.1);
+            background: #ffd700;
+            color: #c41e3a;
+        }
+
+        .help-section {
+            margin-bottom: 25px;
+        }
+
+        .help-section-title {
+            color: #ffd700;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 1px;
+        }
+
+        .help-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #c41e3a;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        .help-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-left-color: #ffd700;
+            transform: translateX(5px);
+        }
+
+        .help-item strong {
+            color: #ffd700;
+            font-weight: 600;
+        }
+
+        .help-emoji {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            #toast-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+
+            .toast {
+                min-width: auto;
+                max-width: 100%;
+                font-size: 12px;
+                padding: 12px 16px;
+            }
+
+            #loading-toast {
+                bottom: 50px;
+                right: 10px;
+                left: 10px;
+                font-size: 10px;
+                padding: 10px 15px;
+            }
+
+            #privacy-notice {
+                font-size: 6px;
+                padding: 6px 10px;
+            }
+
+            #help-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+
+            .help-tooltip {
+                display: none;
+            }
+
+            .help-content {
+                padding: 25px 20px;
+                max-height: 90vh;
+            }
+
+            .help-title {
+                font-size: 18px;
+            }
+
+            .help-section-title {
+                font-size: 14px;
+            }
+
+            #webcam-wrapper {
+                width: 100px;
+                height: 75px;
+                bottom: 80px;
+                left: 10px;
+            }
+
+            #mode-bar {
+                bottom: 20px;
+                right: 10px;
+                gap: 10px;
+            }
+
+            .mode-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+        }
+
+        /* 使用说明 / 控制按钮提示框（移动端友好） */
+        #mode-tip {
+            position: fixed;
+            top: 80px;
+            right: 88px;
+            display: none;
+            z-index: 260;
+            pointer-events: none;
+        }
+
+        #mode-tip.show {
+            display: flex;
+        }
+
+        .mode-tip-content {
+            max-width: 320px;
+            background: linear-gradient(135deg, rgba(10, 15, 25, 0.95) 0%, rgba(15, 35, 30, 0.95) 100%);
+            border-radius: 16px;
+            border: 2px solid rgba(200, 180, 120, 0.7);
+            padding: 12px 14px;
+            color: #fdfcf5;
+            font-size: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: auto;
+        }
+
+        .mode-tip-title {
+            font-weight: 600;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #ffd666;
+        }
+
+        .mode-tip-text {
+            line-height: 1.5;
+        }
+
+        .mode-tip-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+
+        #mode-tip-close {
+            border: none;
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 11px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #c41e3a 0%, #165b33 100%);
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        #mode-tip-close:active {
+            transform: scale(0.96);
+        }
+    </style>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+    </style>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+                "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="loader-scene">
+            <div class="loader-moon"></div>
+            <div class="loader-tree">
+                <div class="tree-layer layer-1"></div>
+                <div class="tree-layer layer-2"></div>
+                <div class="tree-layer layer-3"></div>
+                <div class="tree-trunk"></div>
+                <div class="tree-star"></div>
+                <div class="tree-ornament o1 gold"></div>
+                <div class="tree-ornament o2"></div>
+                <div class="tree-ornament o3 green"></div>
+                <div class="tree-ornament o4 gold"></div>
+                <div class="tree-ornament o5"></div>
+                <div class="loader-garland"></div>
+            </div>
+            <div class="loader-present">
+                <div class="loader-present-ribbon"></div>
+            </div>
+        </div>
+        <div class="loader-text">
+            <div class="loader-title">Merry Christmas</div>
+            <div class="loader-subtitle">
+                <span id="loader-model-name"></span> 模型正在加载中...
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知容器 -->
+    <div id="toast-container"></div>
+
+    <!-- 加载提示toast -->
+    <div id="loading-toast">
+        <div class="toast-spinner"></div>
+        <div class="toast-text">Loading AI Model...</div>
+    </div>
+
+    <!-- 隐私说明 -->
+    <div id="privacy-notice">
+        摄像头仅用于手势识别。
+    </div>
+
+    <!-- 右下角按钮提示框 -->
+    <div id="mode-tip">
+        <div class="mode-tip-content">
+            <div class="mode-tip-title">
+                <span>🎮 小提示</span>
+            </div>
+            <div class="mode-tip-text">
+                右下角有控制按钮：📷 开关摄像头、🎄 树形模式、✨ 星云模式、🔍 随机照片、🙈 隐藏/显示界面（适合截图/录屏）。更详细的手势操作说明，请点击右上角 💡「使用说明」按钮查看。
+            </div>
+            <div class="mode-tip-buttons">
+                <button id="mode-tip-close">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <!-- 使用说明按钮 -->
+    <div id="help-btn">
+        💡
+        <div class="help-tooltip">如何使用？点点我</div>
+    </div>
+
+    <!-- 使用说明弹窗 -->
+    <div id="help-modal">
+        <div class="help-content">
+            <div class="help-header">
+                <div class="help-title">
+                    🎄 使用说明
+                </div>
+                <div class="help-close">×</div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">
+                    <span>🤚</span> 手势识别控制（推荐！！！）
+                </div>
+                <div class="help-item">
+                    <strong>张开手掌 (🖐️)：</strong>炸裂模式！粒子散开成星云效果
+                </div>
+                <div class="help-item">
+                    <strong>握紧拳头 (✊)：</strong>收拢模式！粒子重新聚合成圣诞树
+                </div>
+                <div class="help-item">
+                    <strong>捏合手指 (🤏)：</strong>随机展示一张照片
+                </div>
+            </div>
+
+
+            <div class="help-section">
+                <div class="help-section-title">
+                    <span>🖱️</span> 鼠标/触摸控制
+                </div>
+                <div class="help-item">
+                    <strong>拖拽旋转：</strong>按住鼠标左键或单指拖动，可旋转圣诞树
+                </div>
+                <div class="help-item">
+                    <strong>缩放视图：</strong>使用鼠标滚轮或双指缩放
+                </div>
+                <div class="help-item">
+                    <strong>点击照片：</strong>点击树上的照片可查看大图
+                </div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">
+                    <span>🎮</span> 右下角控制按钮
+                </div>
+                <div class="help-item">
+                    <strong>📷 相机按钮：</strong>开启/关闭摄像头，重载手势识别
+                </div>
+                <div class="help-item">
+                    <strong>🎄 树形按钮：</strong>切换到圣诞树模式
+                </div>
+                <div class="help-item">
+                    <strong>✨ 星云按钮：</strong>切换到粒子炸裂模式
+                </div>
+                <div class="help-item">
+                    <strong>🔍 聚焦按钮：</strong>随机聚焦一张照片
+                </div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">
+                    <span>⌨️</span> 键盘快捷键
+                </div>
+                <div class="help-item">
+                    <strong>H 键：</strong>隐藏所有UI界面，适合截图或录屏
+                </div>
+            </div>
+
+            <div class="help-item" style="background: rgba(196, 30, 58, 0.2); border-left-color: #ffd700; text-align: center; margin-top: 20px;">
+                <span class="help-emoji">🎅</span>
+                <strong>Powerd By kk</strong>
+                <span class="help-emoji">🎄</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="ui-layer">
+        <h1>Merry Christmas</h1>
+
+        <div class="controls-wrapper">
+            <div class="btn-group">
+                <div class="control-btn" id="cam-btn">📷 Enable Gesture</div>
+                <label class="control-btn">
+                    Select Local Folder
+                    <input type="file" id="folder-input" webkitdirectory directory multiple>
+                </label>
+                <label class="control-btn">
+                    Add Local Files
+                    <input type="file" id="file-input" multiple accept="image/*">
+                </label>
+            </div>
+            <div class="hint-text">Cloud Images Loaded. Add local files if needed.</div>
+        </div>
+    <!--
+
+        <!-- 右下角模式切换按钮 - 1列4行 -->
+        <div id="mode-bar">
+            <div class="mode-btn" onclick="reloadCamera()" title="重载摄像头">📷</div>
+            <div class="mode-btn" onclick="setMode('TREE')" title="圣诞树模式">🎄</div>
+            <div class="mode-btn" onclick="setMode('SCATTER')" title="炸裂模式">✨</div>
+            <div class="mode-btn" onclick="setMode('FOCUS_RANDOM')" title="聚焦模式">🔍</div>
+            <div class="mode-btn" onclick="toggleUIVisibility()" title="隐藏/显示界面">🙈</div>
+        </div>
+    </div>
+
+    <div id="webcam-wrapper">
+        <video id="webcam" autoplay playsinline webkit-playsinline></video>
+    </div>
+    <div id="debug-info">Drag to rotate • Tap photo to view</div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'; 
+        import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
+
+        const HAND_MODEL_NAME = 'MediaPipe Hand Landmarker';
+        const FOCUS_SCALE = 2.0;
+        const CONFIG = {
+            colors: {
+                bg: 0x050d1a, 
+                fog: 0x050d1a,
+                champagneGold: 0xffd966, 
+                deepGreen: 0x03180a,     
+                accentRed: 0x990000,     
+            },
+            particles: {
+                count: 1500,
+                dustCount: 2000,
+                treeHeight: 24,
+                treeRadius: 8
+            },
+            camera: { z: 50 },
+            preload: {
+                autoScanLocal: false,
+                useCloudImages: true,
+                cloudImageUrls: [],
+                scanCount: 200
+            }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const PAGE_USERNAME = (urlParams.get('user') || '').trim().toLowerCase();
+        const SERVER_USER_API = PAGE_USERNAME ? `/api/user/${encodeURIComponent(PAGE_USERNAME)}` : null;
+        const IS_VIEW_ONLY = !!PAGE_USERNAME;
+        const IS_WECHAT = /MicroMessenger/i.test(navigator.userAgent || '');
+
+        const STATE = {
+            mode: 'TREE', 
+            focusIndex: -1, 
+            focusTarget: null,
+            hand: { detected: false, x: 0, y: 0 },
+            rotation: { x: 0, y: 0 },
+            touch: { active: false, startX: 0, startY: 0, lastX: 0, lastY: 0 }
+        };
+
+        let scene, camera, renderer, composer;
+        let mainGroup;
+        let clock = new THREE.Clock();
+        let particleSystem = [];
+        let photoMeshGroup = new THREE.Group();
+        let handLandmarker, video;
+        let caneTexture;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        const TMP_VEC3_A = new THREE.Vector3();
+        const TMP_VEC3_B = new THREE.Vector3();
+        const TMP_MAT4_A = new THREE.Matrix4();
+        
+        const debugInfo = document.getElementById('debug-info');
+        const loaderModelSpan = document.getElementById('loader-model-name');
+        if (loaderModelSpan) {
+            loaderModelSpan.textContent = HAND_MODEL_NAME;
+        }
+        const camBtn = document.getElementById('cam-btn');
+        let isCameraRunning = false;
+
+        window.toggleUIVisibility = () => {
+            const controls = document.querySelector('.controls-wrapper');
+            if (controls) controls.classList.toggle('ui-hidden');
+            const webcam = document.getElementById('webcam-wrapper');
+            if (webcam) webcam.classList.toggle('ui-hidden');
+            const helpButton = document.getElementById('help-btn');
+            if (helpButton) helpButton.classList.toggle('ui-hidden');
+            const privacy = document.getElementById('privacy-notice');
+            if (privacy) privacy.classList.toggle('ui-hidden');
+            const modeBar = document.getElementById('mode-bar');
+            if (modeBar) modeBar.classList.toggle('ui-hidden');
+            const title = document.querySelector('h1');
+            if (title) title.classList.toggle('ui-hidden');
+        };
+
+        window.setMode = (mode) => {
+            if (mode === 'FOCUS_RANDOM') {
+                STATE.mode = 'FOCUS';
+                const photos = particleSystem.filter(p => p.type === 'PHOTO');
+                if (photos.length) STATE.focusTarget = photos[Math.floor(Math.random()*photos.length)].mesh;
+            } else {
+                STATE.mode = mode;
+                if (mode === 'TREE') STATE.focusTarget = null;
+            }
+        };
+
+        // 重载摄像头函数
+        window.reloadCamera = () => {
+            if (isCameraRunning) {
+                // 停止当前摄像头
+                if (video && video.srcObject) {
+                    const tracks = video.srcObject.getTracks();
+                    tracks.forEach(track => track.stop());
+                    video.srcObject = null;
+                }
+                isCameraRunning = false;
+                document.getElementById('webcam-wrapper').style.opacity = 0;
+                camBtn.innerText = "📷 Enable Gesture";
+                camBtn.classList.remove('active');
+                showToast('摄像头已关闭', 'info', 2000);
+            } else {
+                // 重新启动摄像头
+                initMediaPipe();
+            }
+        };
+
+        function setupModeBarTip() {
+            const tip = document.getElementById('mode-tip');
+            const closeBtn = document.getElementById('mode-tip-close');
+            if (!tip || !closeBtn) return null;
+
+            const STORAGE_KEY = 'tree_mode_tip_shown_v1';
+            if (window.localStorage && localStorage.getItem(STORAGE_KEY) === '1') {
+                return null;
+            }
+
+            closeBtn.addEventListener('click', () => {
+                tip.classList.remove('show');
+                if (window.localStorage) {
+                    localStorage.setItem(STORAGE_KEY, '1');
+                }
+            });
+
+            const show = () => {
+                tip.classList.add('show');
+            };
+
+            return show;
+        }
+
+        async function init() {
+            const showModeTip = setupModeBarTip();
+
+            initThree();
+            setupEnvironment();
+            setupLights();
+            createTextures();
+            createParticles();
+            createDust();
+            loadPredefinedImages();
+            setupPostProcessing();
+            setupEvents();
+            setupTouchAndClick(); 
+
+            if (IS_VIEW_ONLY) {
+                const controls = document.querySelector('.controls-wrapper');
+                if (controls) controls.style.display = 'none';
+                const hint = document.querySelector('.hint-text');
+                if (hint) hint.style.display = 'none';
+                if (camBtn && !IS_WECHAT) {
+                    // 非微信环境下，自动打开摄像头（浏览器仍会弹出权限提示）
+                    initMediaPipe();
+                } else if (IS_WECHAT) {
+                    showToast('请点击右侧摄像头按钮以开启手势识别', 'info', 4000);
+                }
+            }
+
+            const loader = document.getElementById('loader');
+            loader.style.opacity = 0;
+            setTimeout(() => {
+                loader.remove();
+                if (typeof showModeTip === 'function') {
+                    // 稍微延迟，让右下角按钮先渲染出来
+                    setTimeout(() => showModeTip(), 300);
+                }
+            }, 800);
+
+            animate();
+        }
+
+        // --- 触屏与点击逻辑 (Raycaster) ---
+        function setupTouchAndClick() {
+            const container = document.getElementById('canvas-container');
+            
+            container.addEventListener('pointerdown', (e) => {
+                STATE.touch.active = true;
+                STATE.touch.startX = e.clientX;
+                STATE.touch.startY = e.clientY;
+                STATE.touch.lastX = e.clientX;
+                STATE.touch.lastY = e.clientY;
+            });
+
+            window.addEventListener('pointermove', (e) => {
+                if (!STATE.touch.active) return;
+                const deltaX = e.clientX - STATE.touch.lastX;
+                const deltaY = e.clientY - STATE.touch.lastY;
+                STATE.rotation.y += deltaX * 0.005;
+                STATE.rotation.x += deltaY * 0.002;
+                STATE.rotation.x = Math.max(-0.5, Math.min(0.5, STATE.rotation.x));
+                STATE.touch.lastX = e.clientX;
+                STATE.touch.lastY = e.clientY;
+            });
+
+            window.addEventListener('pointerup', (e) => {
+                STATE.touch.active = false;
+            });
+
+            container.addEventListener('click', (e) => {
+                const moveDist = Math.hypot(e.clientX - STATE.touch.startX, e.clientY - STATE.touch.startY);
+                if (moveDist > 10) return; 
+
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+
+                const intersects = raycaster.intersectObjects(mainGroup.children, true);
+
+                let clickedPhoto = null;
+                for (let hit of intersects) {
+                    let obj = hit.object;
+                    while(obj.parent && obj.parent !== mainGroup && obj.parent !== photoMeshGroup) {
+                        obj = obj.parent;
+                    }
+                    const particle = particleSystem.find(p => p.mesh === obj && p.type === 'PHOTO');
+                    if (particle) {
+                        clickedPhoto = particle;
+                        break;
+                    }
+                }
+
+                if (clickedPhoto) {
+                    STATE.mode = 'FOCUS';
+                    STATE.focusTarget = clickedPhoto.mesh;
+                } else {
+                    if (STATE.mode === 'FOCUS') {
+                        STATE.mode = 'TREE';
+                        STATE.focusTarget = null;
+                    }
+                }
+            });
+
+            let lastTap = 0;
+            container.addEventListener('touchend', (e) => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                if (tapLength < 300 && tapLength > 0) {
+                    STATE.mode = (STATE.mode === 'SCATTER') ? 'TREE' : 'SCATTER';
+                    e.preventDefault();
+                }
+                lastTap = currentTime;
+            });
+        }
+
+        // --- 核心 Three.js 逻辑 ---
+        function initThree() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(CONFIG.colors.bg);
+            scene.fog = new THREE.FogExp2(CONFIG.colors.fog, 0.015);
+
+            camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 2, CONFIG.camera.z); 
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ReinhardToneMapping; 
+            renderer.toneMappingExposure = 2.2; 
+            container.appendChild(renderer.domElement);
+
+            mainGroup = new THREE.Group();
+            scene.add(mainGroup);
+        }
+
+        function setupEnvironment() {
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+        }
+
+        function setupLights() {
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6); 
+            scene.add(ambient);
+            const innerLight = new THREE.PointLight(0xffaa00, 2, 20);
+            innerLight.position.set(0, 5, 0);
+            mainGroup.add(innerLight);
+            const spotGold = new THREE.SpotLight(0xffcc66, 1200);
+            spotGold.position.set(30, 40, 40); spotGold.angle = 0.5; spotGold.penumbra = 0.5;
+            scene.add(spotGold);
+            const spotBlue = new THREE.SpotLight(0x6688ff, 800); 
+            spotBlue.position.set(-30, 20, -30);
+            scene.add(spotBlue);
+            const fill = new THREE.DirectionalLight(0xffeebb, 0.8);
+            fill.position.set(0, 0, 50);
+            scene.add(fill);
+        }
+
+        function setupPostProcessing() {
+            const renderScene = new RenderPass(scene, camera);
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            bloomPass.threshold = 0.65; bloomPass.strength = 0.5; bloomPass.radius = 0.4;
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
+        }
+
+        function createTextures() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,128,128);
+            ctx.fillStyle = '#880000'; ctx.beginPath();
+            for(let i=-128; i<256; i+=32) {
+                ctx.moveTo(i, 0); ctx.lineTo(i+32, 128); ctx.lineTo(i+16, 128); ctx.lineTo(i-16, 0);
+            }
+            ctx.fill();
+            caneTexture = new THREE.CanvasTexture(canvas);
+            caneTexture.wrapS = THREE.RepeatWrapping; caneTexture.wrapT = THREE.RepeatWrapping;
+            caneTexture.repeat.set(3, 3);
+        }
+
+        // --- 粒子与图片系统 ---
+        // DOM-based 雪花效果 (匹配 config.html)
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.className = 'snowflake';
+            snowflake.textContent = '❄';
+            snowflake.style.left = Math.random() * 100 + '%';
+            snowflake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
+            snowflake.style.opacity = Math.random() * 0.6 + 0.4;
+            document.body.appendChild(snowflake);
+
+            setTimeout(() => {
+                snowflake.remove();
+            }, 5000);
+        }
+
+        // 每300ms创建一个雪花
+        setInterval(createSnowflake, 300);
+
+        class Particle {
+            constructor(mesh, type, isDust = false) {
+                this.mesh = mesh; this.type = type; this.isDust = isDust;
+                this.posTree = new THREE.Vector3(); this.posScatter = new THREE.Vector3();
+                this.baseScale = mesh.scale.x; 
+                const speedMult = (type === 'PHOTO') ? 0.3 : 2.0;
+                this.spinSpeed = new THREE.Vector3((Math.random()-0.5)*speedMult, (Math.random()-0.5)*speedMult, (Math.random()-0.5)*speedMult);
+                this.calculatePositions();
+            }
+            calculatePositions() {
+                if (this.type === 'PHOTO') {
+                    this.posTree.set(0, 0, 0); 
+                    const rScatter = 8 + Math.random()*12;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    this.posScatter.set(rScatter * Math.sin(phi) * Math.cos(theta), rScatter * Math.sin(phi) * Math.sin(theta), rScatter * Math.cos(phi));
+                    return;
+                }
+                const h = CONFIG.particles.treeHeight;
+                let t = Math.pow(Math.random(), 0.8); 
+                const y = (t * h) - (h / 2);
+                let rMax = Math.max(0.5, CONFIG.particles.treeRadius * (1.0 - t));
+                const angle = t * 50 * Math.PI + Math.random() * Math.PI; 
+                const r = rMax * (0.8 + Math.random() * 0.4); 
+                this.posTree.set(Math.cos(angle) * r, y, Math.sin(angle) * r);
+                let rScatter = this.isDust ? (12 + Math.random()*20) : (8 + Math.random()*12);
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                this.posScatter.set(rScatter * Math.sin(phi) * Math.cos(theta), rScatter * Math.sin(phi) * Math.sin(theta), rScatter * Math.cos(phi));
+            }
+            update(dt, mode, focusTargetMesh) {
+                let target = (mode === 'SCATTER') ? this.posScatter : this.posTree;
+                if (mode === 'FOCUS') {
+                    if (this.mesh === focusTargetMesh) {
+                        // 根据屏幕比例为移动端和桌面分别设定聚焦位置
+                        const isPortrait = window.innerHeight > window.innerWidth;
+                        const desiredWorldPos = isPortrait
+                            ? new THREE.Vector3(-2.2, 1.2, 40)   // 移动端：稍远一点防止裁切
+                            : new THREE.Vector3(0, 1, 35);    // 桌面端
+                        const invMatrix = new THREE.Matrix4().copy(mainGroup.matrixWorld).invert();
+                        target = desiredWorldPos.applyMatrix4(invMatrix);
+                    } else target = this.posScatter;
+                }
+                const lerpSpeed = (mode === 'FOCUS' && this.mesh === focusTargetMesh) ? 5.0 : 2.0; 
+                this.mesh.position.lerp(target, lerpSpeed * dt);
+
+                if (mode === 'SCATTER') {
+                    this.mesh.rotation.x += this.spinSpeed.x * dt;
+                    this.mesh.rotation.y += this.spinSpeed.y * dt;
+                    this.mesh.rotation.z += this.spinSpeed.z * dt; 
+                } else if (mode === 'TREE') {
+                    if (this.type === 'PHOTO') {
+                        this.mesh.lookAt(0, this.mesh.position.y, 0);
+                        this.mesh.rotateY(Math.PI);
+                    } else {
+                        this.mesh.rotation.x = THREE.MathUtils.lerp(this.mesh.rotation.x, 0, dt);
+                        this.mesh.rotation.z = THREE.MathUtils.lerp(this.mesh.rotation.z, 0, dt);
+                        this.mesh.rotation.y += 0.5 * dt; 
+                    }
+                }
+                if (mode === 'FOCUS' && this.mesh === focusTargetMesh) this.mesh.lookAt(camera.position); 
+
+                let s = this.baseScale;
+                if (this.isDust) {
+                    s = this.baseScale * (0.8 + 0.4 * Math.sin(clock.elapsedTime * 4 + this.mesh.id));
+                    if (mode === 'TREE') s = 0; 
+                } else if (mode === 'SCATTER' && this.type === 'PHOTO') s = this.baseScale * 2.5; 
+                else if (mode === 'FOCUS') {
+                    const isPortrait = window.innerHeight > window.innerWidth;
+                    if (this.mesh === focusTargetMesh) {
+                        // 移动端略小一点，桌面使用全局 FOCUS_SCALE
+                        s = isPortrait ? 2.4 : FOCUS_SCALE;
+                    } else {
+                        s = this.baseScale * 1.0;
+                    }
+                }
+                this.mesh.scale.lerp(new THREE.Vector3(s,s,s), 4*dt);
+            }
+        }
+
+        function updatePhotoLayout() {
+            const photos = particleSystem.filter(p => p.type === 'PHOTO');
+            const count = photos.length;
+            if (count === 0) return;
+            const h = CONFIG.particles.treeHeight * 0.9;
+            const bottomY = -h/2; const stepY = h / count; const loops = 3;
+            photos.forEach((p, i) => {
+                const y = bottomY + stepY * i + stepY/2;
+                const normalizedH = (y + h/2) / CONFIG.particles.treeHeight; 
+                const r = Math.max(1.0, CONFIG.particles.treeRadius * (1.0 - normalizedH)) + 3.0; 
+                const angle = normalizedH * Math.PI * 2 * loops + (Math.PI/4); 
+                p.posTree.set(Math.cos(angle) * r, y, Math.sin(angle) * r);
+            });
+        }
+
+        function createParticles() {
+            const sphereGeo = new THREE.SphereGeometry(0.5, 32, 32); 
+            const boxGeo = new THREE.BoxGeometry(0.55, 0.55, 0.55); 
+            const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(0, -0.5, 0), new THREE.Vector3(0, 0.3, 0), new THREE.Vector3(0.1, 0.5, 0), new THREE.Vector3(0.3, 0.4, 0)]);
+            const candyGeo = new THREE.TubeGeometry(curve, 16, 0.08, 8, false);
+            const goldMat = new THREE.MeshStandardMaterial({ color: CONFIG.colors.champagneGold, metalness: 1.0, roughness: 0.1, envMapIntensity: 2.0, emissive: 0x443300, emissiveIntensity: 0.3 });
+            const greenMat = new THREE.MeshStandardMaterial({ color: CONFIG.colors.deepGreen, metalness: 0.2, roughness: 0.8, emissive: 0x002200, emissiveIntensity: 0.2 });
+            const redMat = new THREE.MeshPhysicalMaterial({ color: CONFIG.colors.accentRed, metalness: 0.3, roughness: 0.2, clearcoat: 1.0, emissive: 0x330000 });
+            const candyMat = new THREE.MeshStandardMaterial({ map: caneTexture, roughness: 0.4 });
+
+            for (let i = 0; i < CONFIG.particles.count; i++) {
+                const rand = Math.random();
+                let mesh, type;
+                if (rand < 0.40) { mesh = new THREE.Mesh(boxGeo, greenMat); type = 'BOX'; }
+                else if (rand < 0.70) { mesh = new THREE.Mesh(boxGeo, goldMat); type = 'GOLD_BOX'; }
+                else if (rand < 0.92) { mesh = new THREE.Mesh(sphereGeo, goldMat); type = 'GOLD_SPHERE'; }
+                else if (rand < 0.97) { mesh = new THREE.Mesh(sphereGeo, redMat); type = 'RED'; }
+                else { mesh = new THREE.Mesh(candyGeo, candyMat); type = 'CANE'; }
+                const s = 0.4 + Math.random() * 0.5;
+                mesh.scale.set(s,s,s); mesh.rotation.set(Math.random()*6, Math.random()*6, Math.random()*6);
+                mainGroup.add(mesh);
+                particleSystem.push(new Particle(mesh, type, false));
+            }
+            // Star
+            const starShape = new THREE.Shape();
+            const points = 5;
+            for (let i = 0; i < points * 2; i++) {
+                const angle = (i * Math.PI) / points + Math.PI / 2;
+                const r = (i % 2 === 0) ? 1.5 : 0.7;
+                const x = Math.cos(angle) * r; const y = Math.sin(angle) * r;
+                if (i === 0) starShape.moveTo(x, y); else starShape.lineTo(x, y);
+            }
+            starShape.closePath();
+            const starGeo = new THREE.ExtrudeGeometry(starShape, { depth: 0.4, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 2 });
+            starGeo.center(); 
+            const starMat = new THREE.MeshStandardMaterial({ color: 0xffdd88, emissive: 0xffaa00, emissiveIntensity: 1.0, metalness: 1.0, roughness: 0 });
+            const star = new THREE.Mesh(starGeo, starMat);
+            star.position.set(0, CONFIG.particles.treeHeight/2 + 1.2, 0);
+            mainGroup.add(star);
+            mainGroup.add(photoMeshGroup);
+        }
+
+        function createDust() {
+            const geo = new THREE.TetrahedronGeometry(0.08, 0);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xffeebb, transparent: true, opacity: 0.8 });
+            for(let i=0; i<CONFIG.particles.dustCount; i++) {
+                 const mesh = new THREE.Mesh(geo, mat);
+                 mesh.scale.setScalar(0.5 + Math.random());
+                 mainGroup.add(mesh);
+                 particleSystem.push(new Particle(mesh, 'DUST', true));
+            }
+        }
+
+        function addPhotoToScene(texture) {
+            const frameGeo = new THREE.BoxGeometry(1.4, 1.4, 0.05);
+            const frameMat = new THREE.MeshStandardMaterial({ color: CONFIG.colors.champagneGold, metalness: 1.0, roughness: 0.1 });
+            const frame = new THREE.Mesh(frameGeo, frameMat);
+            let width = 1.2; let height = 1.2;
+            if (texture.image) {
+                const aspect = texture.image.width / texture.image.height;
+                if (aspect > 1) height = width / aspect; else width = height * aspect;
+            }
+            const photoGeo = new THREE.PlaneGeometry(width, height);
+            const photoMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+            const photo = new THREE.Mesh(photoGeo, photoMat);
+            photo.position.z = 0.04;
+            const group = new THREE.Group();
+            group.add(frame); group.add(photo);
+            frame.scale.set(width/1.2, height/1.2, 1);
+            const s = 1.1; group.scale.set(s,s,s);
+            photoMeshGroup.add(group);
+            particleSystem.push(new Particle(group, 'PHOTO', false));
+            updatePhotoLayout();
+        }
+
+        function handleImageUpload(e) {
+            const files = e.target.files;
+            if(!files.length) return;
+            Array.from(files).forEach(f => {
+                if (!f.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    new THREE.TextureLoader().load(ev.target.result, (t) => {
+                        t.colorSpace = THREE.SRGBColorSpace;
+                        addPhotoToScene(t);
+                    });
+                }
+                reader.readAsDataURL(f);
+            });
+        }
+        
+        async function loadPredefinedImages() {
+            const loader = new THREE.TextureLoader();
+
+            if (SERVER_USER_API) {
+                try {
+                    const resp = await fetch(SERVER_USER_API);
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        if (Array.isArray(data.photos)) {
+                            data.photos.forEach((url) => {
+                                loader.load(
+                                    url,
+                                    (t) => {
+                                        t.colorSpace = THREE.SRGBColorSpace;
+                                        addPhotoToScene(t);
+                                    },
+                                    undefined,
+                                    () => {}
+                                );
+                            });
+                        }
+                        if (data.blessing) {
+                            const titleEl = document.querySelector('h1');
+                            if (titleEl) titleEl.textContent = data.blessing;
+                        }
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Failed to load server photos', e);
+                }
+            }
+            
+            // 1. 优先加载配置的云端图片
+            if (CONFIG.preload.useCloudImages && CONFIG.preload.cloudImageUrls.length > 0) {
+                CONFIG.preload.cloudImageUrls.forEach(url => {
+                    loader.load(
+                        url,
+                        (t) => {
+                            t.colorSpace = THREE.SRGBColorSpace;
+                            addPhotoToScene(t);
+                        },
+                        undefined,
+                        (err) => {
+                            console.warn("Failed to load cloud image:", url);
+                        }
+                    );
+                });
+            }
+
+            // 2. 如果开启了本地自动扫描 (CONFIG.preload.autoScanLocal 为 true)
+            if (CONFIG.preload.autoScanLocal) {
+                for (let i = 1; i <= CONFIG.preload.scanCount; i++) {
+                    const pathJpg = `./images/(${i}).jpg`;
+                    const pathPng = `./images/(${i}).png`;
+                    loader.load(pathJpg, (t) => { t.colorSpace = THREE.SRGBColorSpace; addPhotoToScene(t); }, undefined, () => {
+                             loader.load(pathPng, (t) => { t.colorSpace = THREE.SRGBColorSpace; addPhotoToScene(t); }, undefined, () => {} );
+                    });
+                }
+            }
+        }
+
+        // --- MEDIAPIPE ---
+        // Toast 通知函数
+        function showToast(message, type = 'info', duration = 3000) {
+            if (!message || message.trim() === '') return;
+
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const iconMap = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+
+            toast.innerHTML = `
+                <div class="toast-icon">${iconMap[type] || 'ℹ️'}</div>
+                <div class="toast-text">${message}</div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode === container) {
+                        container.removeChild(toast);
+                    }
+                }, 400);
+            }, duration);
+        }
+
+        // 加载提示函数
+        function showLoadingToast(message) {
+            const toast = document.getElementById('loading-toast');
+            const toastText = toast.querySelector('.toast-text');
+            toastText.textContent = message;
+            toast.classList.add('show');
+        }
+
+        function hideLoadingToast() {
+            const toast = document.getElementById('loading-toast');
+            toast.classList.remove('show');
+        }
+
+        async function initMediaPipe() {
+            if (isCameraRunning) return;
+
+            // 显示加载提示
+            showLoadingToast('Loading AI Vision...');
+
+            camBtn.innerText = "Initializing...";
+            debugInfo.innerText = "Loading AI models...";
+            video = document.getElementById('webcam');
+            try {
+                // 加载 Vision 任务
+                const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
+
+                // 更新提示
+                showLoadingToast('Loading Hand Model...');
+
+                handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                    baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`, delegate: "GPU" },
+                    runningMode: "VIDEO", numHands: 1
+                });
+
+                // 更新提示
+                showLoadingToast('Initializing Camera...');
+
+                const constraints = { video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+
+                const startPredict = () => {
+                    // 某些移动端需要显式 play 才会开始渲染
+                    const playPromise = video.play && video.play();
+                    if (playPromise && typeof playPromise.catch === 'function') {
+                        playPromise.catch(() => {});
+                    }
+                    predictWebcam();
+                };
+
+                if (video.readyState >= 2) {
+                    startPredict();
+                } else {
+                    video.onloadeddata = startPredict;
+                }
+                document.getElementById('webcam-wrapper').style.opacity = 1;
+
+                // 加载完成，延迟隐藏提示
+                showLoadingToast('Ready! ✨');
+                setTimeout(() => {
+                    hideLoadingToast();
+                }, 1500);
+
+                debugInfo.innerText = "Gesture Active: Show Hand";
+                camBtn.innerText = "Gesture Active";
+                camBtn.classList.add('active');
+                isCameraRunning = true;
+            } catch(e) {
+                console.warn("Camera error:", e);
+                hideLoadingToast();
+                let msg = "Camera Error: " + e.name;
+                if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+                    msg = "请允许摄像头访问权限！";
+                } else if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+                    msg = "摄像头需要 HTTPS 协议！";
+                }
+                debugInfo.innerText = msg;
+                showToast(msg, 'error', 4000);
+                camBtn.innerText = "Retry Camera";
+            }
+        }
+
+        let lastVideoTime = -1;
+        async function predictWebcam() {
+            if (video.currentTime !== lastVideoTime) {
+                lastVideoTime = video.currentTime;
+                if (handLandmarker) {
+                    const result = handLandmarker.detectForVideo(video, performance.now());
+                    processGestures(result);
+                }
+            }
+            requestAnimationFrame(predictWebcam);
+        }
+
+        function processGestures(result) {
+            if (result.landmarks && result.landmarks.length > 0) {
+                STATE.hand.detected = true;
+                const lm = result.landmarks[0];
+                STATE.hand.x = (lm[9].x - 0.5) * 2; 
+                STATE.hand.y = (lm[9].y - 0.5) * 2;
+                const wrist = lm[0]; const middleMCP = lm[9]; 
+                const handSize = Math.hypot(middleMCP.x - wrist.x, middleMCP.y - wrist.y);
+                if (handSize < 0.02) return;
+                const tips = [lm[8], lm[12], lm[16], lm[20]];
+                let avgTipDist = 0; tips.forEach(t => avgTipDist += Math.hypot(t.x - wrist.x, t.y - wrist.y)); avgTipDist /= 4;
+                const pinchDist = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
+                const extensionRatio = avgTipDist / handSize; const pinchRatio = pinchDist / handSize;
+                
+                debugInfo.innerText = `Gesture Detected: ${STATE.mode}`;
+
+                if (extensionRatio < 1.5) { STATE.mode = 'TREE'; STATE.focusTarget = null; }
+                else if (pinchRatio < 0.35) {
+                    if (STATE.mode !== 'FOCUS') {
+                        STATE.mode = 'FOCUS';
+                        const photos = particleSystem.filter(p => p.type === 'PHOTO');
+                        if (photos.length) STATE.focusTarget = photos[Math.floor(Math.random()*photos.length)].mesh;
+                    }
+                } else if (extensionRatio > 1.7) { STATE.mode = 'SCATTER'; STATE.focusTarget = null; }
+            } else {
+                STATE.hand.detected = false;
+            }
+        }
+        function setupEvents() {
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                composer.setSize(window.innerWidth, window.innerHeight);
+            });
+            document.getElementById('file-input').addEventListener('change', handleImageUpload);
+            document.getElementById('folder-input').addEventListener('change', handleImageUpload);
+            camBtn.addEventListener('click', () => { initMediaPipe(); });
+
+            // 帮助按钮和弹窗控制
+            const helpBtn = document.getElementById('help-btn');
+            const helpModal = document.getElementById('help-modal');
+            const helpClose = document.querySelector('.help-close');
+
+            helpBtn.addEventListener('click', () => {
+                helpModal.classList.add('show');
+            });
+
+            helpClose.addEventListener('click', () => {
+                helpModal.classList.remove('show');
+            });
+
+            // 点击背景关闭弹窗
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) {
+                    helpModal.classList.remove('show');
+                }
+            });
+
+            window.addEventListener('keydown', (e) => {
+                // ESC 关闭帮助弹窗
+                if (e.key === 'Escape' && helpModal.classList.contains('show')) {
+                    helpModal.classList.remove('show');
+                }
+
+                // H 键隐藏UI
+                if (e.key.toLowerCase() === 'h') {
+                    toggleUIVisibility();
+                }
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = clock.getDelta();
+
+            // 交互逻辑核心：手势优先 > 触摸 > 自动旋转
+            if (STATE.hand.detected) {
+                // 手势控制
+                if (STATE.mode === 'SCATTER') {
+                    const targetRotY = STATE.hand.x * Math.PI * 0.9; 
+                    const targetRotX = STATE.hand.y * Math.PI * 0.25;
+                    STATE.rotation.y += (targetRotY - STATE.rotation.y) * 3.0 * dt;
+                    STATE.rotation.x += (targetRotX - STATE.rotation.x) * 3.0 * dt;
+                } else {
+                    STATE.rotation.y += 0.3 * dt;
+                }
+            } else if (STATE.touch.active) {
+                // 触摸/鼠标拖动控制
+            } else {
+                // 自动闲置动画
+                if(STATE.mode === 'TREE') {
+                    STATE.rotation.y += 0.3 * dt;
+                    STATE.rotation.x += (0 - STATE.rotation.x) * 2.0 * dt;
+                } else {
+                    STATE.rotation.y += 0.1 * dt; 
+                }
+            }
+            mainGroup.rotation.y = STATE.rotation.y;
+            mainGroup.rotation.x = STATE.rotation.x;
+
+            particleSystem.forEach(p => p.update(dt, STATE.mode, STATE.focusTarget));
+            composer.render();
+        }
+        init();
+    </script>
+</body>
+
+</html>

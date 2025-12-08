@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>圣诞树祝福配置</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+      color: #f5f5f5;
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* 雪花动画 */
+    .snowflake {
+      position: fixed;
+      top: -10px;
+      color: white;
+      font-size: 1em;
+      font-family: Arial, sans-serif;
+      text-shadow: 0 0 5px #fff;
+      animation: fall linear infinite;
+      opacity: 0.8;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes fall {
+      0% { top: -10%; opacity: 0.8; }
+      100% { top: 110%; opacity: 0.2; }
+    }
+
+    /* 容器 */
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+      z-index: 10;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 顶部标题区 */
+    .header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 20px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+
+    .header-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+      display: inline-block;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 15px;
+      background: linear-gradient(120deg, #ffd700, #ff6b6b, #4ecdc4, #ffd700);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s linear infinite;
+      font-weight: 700;
+    }
+
+    @keyframes shimmer {
+      to { background-position: 200% center; }
+    }
+
+    .user-info {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .username {
+      color: #ffd700;
+      font-weight: 700;
+      font-size: 18px;
+      text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+    }
+
+    /* 主表单卡片 */
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 35px;
+      border-radius: 20px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #ffd700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 15px;
+      resize: vertical;
+      transition: all 0.3s ease;
+      outline: none;
+      font-family: inherit;
+      line-height: 1.6;
+    }
+
+    textarea::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    textarea:focus {
+      border-color: #ffd700;
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    }
+
+    /* 文件上传区域 */
+    .upload-area {
+      margin-top: 25px;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      margin-top: 12px;
+    }
+
+    input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 20px;
+      border: 2px dashed rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .file-label:hover {
+      border-color: #ffd700;
+      background: rgba(255, 215, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .file-label-icon {
+      font-size: 24px;
+    }
+
+    /* 已上传图片管理 */
+    .image-manager {
+      margin-top: 30px;
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .image-item {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.3);
+      aspect-ratio: 1;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .image-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      border-color: #ffd700;
+    }
+
+    .image-item.show-actions .image-item-overlay {
+      opacity: 1;
+    }
+
+    .image-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-item-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      gap: 10px;
+    }
+
+    .image-item:hover .image-item-overlay {
+      opacity: 1;
+    }
+
+    .image-btn {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-view {
+      background: #4ecdc4;
+      color: white;
+    }
+
+    .btn-view:hover {
+      background: #45b7b0;
+      transform: scale(1.05);
+    }
+
+    .btn-delete {
+      background: #ff6b6b;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background: #ff5252;
+      transform: scale(1.05);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 15px;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+
+    /* 按钮 */
+    .btn-primary {
+      margin-top: 25px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+      color: #1a1a1a;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-primary:hover::before {
+      width: 400px;
+      height: 400px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(255, 215, 0, 0.5);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Toast 通知 */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+      background: transparent;
+    }
+
+    .toast-container:empty {
+      display: none;
+    }
+
+    .toast {
+      background: linear-gradient(135deg, #c41e3a 0%, #165b33 100%);
+      border: 2px solid #ffd700;
+      border-radius: 12px;
+      padding: 14px 20px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 8px 25px rgba(196, 30, 58, 0.4), 0 0 20px rgba(255, 215, 0, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 280px;
+      opacity: 0;
+      transform: translateX(120%);
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      background: linear-gradient(135deg, #165b33 0%, #4ecdc4 100%);
+    }
+
+    .toast.error {
+      background: linear-gradient(135deg, #c41e3a 0%, #ff6b6b 100%);
+    }
+
+    .toast.info {
+      background: linear-gradient(135deg, #2c5364 0%, #4ecdc4 100%);
+    }
+
+    .toast-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .toast-text {
+      flex: 1;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .toast::before {
+      content: '❄️';
+      position: absolute;
+      right: -5px;
+      top: -5px;
+      font-size: 16px;
+      opacity: 0.3;
+      animation: snowfall 3s infinite;
+    }
+
+    @keyframes snowfall {
+      0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+      50% { transform: translateY(5px) rotate(180deg); opacity: 0.6; }
+    }
+
+    /* 短链接 */
+    .short-link {
+      margin-top: 20px;
+      padding: 16px;
+      background: rgba(255, 215, 0, 0.1);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 12px;
+      font-size: 14px;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .short-link strong {
+      color: #ffd700;
+      font-size: 16px;
+      display: block;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .link-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 215, 0, 0.2);
+    }
+
+    .link-url {
+      flex: 1;
+      color: #4ecdc4;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      word-break: break-all;
+    }
+
+    .link-url:hover {
+      color: #ffd700;
+    }
+
+    .copy-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+      color: #1a1a1a;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .copy-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5);
+    }
+
+    .copy-btn:active {
+      transform: translateY(0);
+    }
+
+    .copy-btn.copied {
+      background: linear-gradient(135deg, #4ecdc4 0%, #45b7b0 100%);
+      color: white;
+    }
+
+    /* 模态框 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      animation: zoomIn 0.3s ease-out;
+    }
+
+    @keyframes zoomIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .modal-content img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid white;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      z-index: 1001;
+    }
+
+    .modal-close:hover {
+      background: #ff6b6b;
+      transform: rotate(90deg);
+    }
+
+    /* 图片上传加载弹窗 */
+    #upload-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #upload-modal.active {
+      display: flex;
+    }
+
+    .upload-modal-content {
+      background: linear-gradient(135deg, #1a0a0e 0%, #0a1f14 100%);
+      border-radius: 18px;
+      border: 2px solid #ffd700;
+      padding: 24px 22px;
+      max-width: 320px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+      text-align: center;
+      color: #fdfcf5;
+      font-size: 14px;
+    }
+
+    .upload-spinner {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #ffd700;
+      border-right-color: #ffd700;
+      animation: upload-spin 0.9s linear infinite;
+    }
+
+    .upload-modal-title {
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #ffd700;
+    }
+
+    .upload-modal-text {
+      line-height: 1.6;
+    }
+
+    @keyframes upload-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+
+      .card {
+        padding: 25px 20px;
+      }
+
+      .header {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .image-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Toast 通知容器 -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- 图片上传加载弹窗 -->
+  <div id="upload-modal">
+    <div class="upload-modal-content">
+      <div class="upload-spinner"></div>
+      <div class="upload-modal-title">图片正在上传...</div>
+      <div class="upload-modal-text">
+        服务器资源紧张，图片上传较慢，请耐心等待~
+      </div>
+    </div>
+  </div>
+
+  <!-- 页面头部 -->
+  <div class="container">
+    <div class="header">
+      <div class="header-icon">🎄</div>
+      <h1>圣诞树祝福配置中心</h1>
+      <div class="user-info">
+        当前用户：<span id="username" class="username"></span>
+      </div>
+    </div>
+
+    <!-- 配置表单 -->
+    <div class="card">
+      <form id="config-form">
+        <!-- 祝福文字 -->
+        <div>
+          <div class="section-title">
+            <span>💌</span>
+            <span>祝福文字</span>
+          </div>
+          <label for="blessing">写下您的圣诞祝福</label>
+          <textarea id="blessing" name="blessing" placeholder="在这个温暖的圣诞节，写下您最真挚的祝福..."></textarea>
+        </div>
+
+        <!-- 上传照片 -->
+        <div class="upload-area">
+          <div class="section-title">
+            <span>📸</span>
+            <span>上传新照片</span>
+          </div>
+          <div class="file-input-wrapper">
+            <input id="photos" name="photos" type="file" multiple accept="image/*">
+            <div class="file-label">
+              <span class="file-label-icon">📁</span>
+              <span>点击选择照片（可多选）</span>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary">
+          <span style="position: relative; z-index: 1;">保存配置</span>
+        </button>
+
+        <div id="short-link" class="short-link"></div>
+      </form>
+    </div>
+
+    <!-- 已上传图片管理 -->
+    <div class="card image-manager">
+      <div class="section-title">
+        <span>🖼️</span>
+        <span>已上传的照片</span>
+      </div>
+      <div id="image-grid" class="image-grid">
+        <div class="empty-state">
+          <div class="empty-state-icon">📷</div>
+          <div>还没有上传照片</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 图片查看模态框 -->
+  <div id="modal" class="modal">
+    <div class="modal-close" onclick="closeModal()">×</div>
+    <div class="modal-content">
+      <img id="modal-img" src="" alt="预览">
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const usernameRaw = params.get('user') || '';
+    const username = usernameRaw.trim().toLowerCase();
+    const usernameSpan = document.getElementById('username');
+    const shortEl = document.getElementById('short-link');
+    const blessingEl = document.getElementById('blessing');
+    const imageGridEl = document.getElementById('image-grid');
+    const uploadModalEl = document.getElementById('upload-modal');
+    let currentPhotos = [];
+
+    // 创建雪花效果
+    function createSnowflake() {
+      const snowflake = document.createElement('div');
+      snowflake.className = 'snowflake';
+      snowflake.textContent = '❄';
+      snowflake.style.left = Math.random() * 100 + '%';
+      snowflake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+      snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
+      snowflake.style.opacity = Math.random() * 0.6 + 0.4;
+      document.body.appendChild(snowflake);
+      setTimeout(() => snowflake.remove(), 5000);
+    }
+    setInterval(createSnowflake, 300);
+
+    // 加载用户数据
+    if (!username) {
+      usernameSpan.textContent = '(未知)';
+      showToast('⚠️ 请从首页进入', 'error', 4000);
+    } else {
+      usernameSpan.textContent = username;
+      loadUserData();
+    }
+
+    function loadUserData() {
+      fetch('/api/user/' + encodeURIComponent(username))
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data) return;
+          if (data.blessing) blessingEl.value = data.blessing;
+          if (Array.isArray(data.photos)) {
+            currentPhotos = data.photos;
+            renderImageGrid(data.photos);
+          }
+          if (data.shortId) {
+            const url = location.origin + '/u/' + data.shortId;
+            renderShortLink(url);
+          }
+        })
+        .catch(() => {});
+    }
+
+    // 渲染图片网格
+    function renderImageGrid(photos) {
+      if (!photos || photos.length === 0) {
+        imageGridEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📷</div>
+            <div>还没有上传照片</div>
+        </div>
+      `;
+        return;
+      }
+
+      imageGridEl.innerHTML = photos.map((url, index) => `
+        <div class="image-item">
+          <img src="${url}" alt="照片 ${index + 1}">
+          <div class="image-item-overlay">
+            <button class="image-btn btn-view" onclick="viewImage('${url}')">查看</button>
+            <button class="image-btn btn-delete" onclick="deleteImage('${url}', ${index})">删除</button>
+          </div>
+        </div>
+      `).join('');
+
+      // 为移动端/无 hover 设备增加点击显示操作的体验
+      if (!imageGridEl.dataset.boundClick) {
+        imageGridEl.addEventListener('click', function (e) {
+          const actionBtn = e.target.closest('.image-btn');
+          if (actionBtn) {
+            // 交给按钮自身的 onclick 处理
+            return;
+          }
+          const item = e.target.closest('.image-item');
+          if (!item) return;
+
+          const alreadyActive = item.classList.contains('show-actions');
+          // 先关闭其它项
+          const activeItems = imageGridEl.querySelectorAll('.image-item.show-actions');
+          activeItems.forEach(el => el.classList.remove('show-actions'));
+
+          // 再切换当前项
+          if (!alreadyActive) {
+            item.classList.add('show-actions');
+          }
+        });
+        imageGridEl.dataset.boundClick = '1';
+      }
+    }
+
+    // 查看图片
+    function viewImage(url) {
+      document.getElementById('modal-img').src = url;
+      document.getElementById('modal').classList.add('active');
+    }
+
+    // 关闭模态框
+    function closeModal() {
+      document.getElementById('modal').classList.remove('active');
+    }
+
+    // 点击模态框背景关闭
+    document.getElementById('modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeModal();
+      }
+    });
+
+    // 渲染短链接
+    function renderShortLink(url) {
+      shortEl.innerHTML = `
+        <strong>🔗 您的专属链接</strong>
+        <div class="link-container">
+          <a href="${url}" target="_blank" class="link-url">${url}</a>
+          <button class="copy-btn" onclick="copyLink('${url}', this)">
+            <span>📋</span>
+            <span>复制</span>
+          </button>
+        </div>
+      `;
+    }
+
+    // 复制链接
+    function copyLink(url, btn) {
+      navigator.clipboard.writeText(url).then(() => {
+        const originalHTML = btn.innerHTML;
+        btn.classList.add('copied');
+        btn.innerHTML = '<span>✓</span><span>已复制</span>';
+
+        // 只显示复制成功提示
+        showToast('链接已复制！', 'success', 2000);
+
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = originalHTML;
+        }, 2000);
+      }).catch(() => {
+        // 降级方案：使用传统方法
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          const originalHTML = btn.innerHTML;
+          btn.classList.add('copied');
+          btn.innerHTML = '<span>✓</span><span>已复制</span>';
+
+          showToast('链接已复制！', 'success', 2000);
+
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = originalHTML;
+          }, 2000);
+        } catch (err) {
+          showToast('复制失败，请手动复制', 'error');
+        }
+        document.body.removeChild(textArea);
+      });
+    }
+
+    // 删除图片
+    function deleteImage(url, index) {
+      if (!confirm('确定要删除这张照片吗？')) return;
+
+      fetch('/api/delete-photo/' + encodeURIComponent(username), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photoUrl: url })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) {
+          currentPhotos.splice(index, 1);
+          renderImageGrid(currentPhotos);
+          showToast('已删除', 'success', 2000);
+        } else {
+          showToast((data.error || '删除失败'), 'error');
+        }
+      })
+      .catch(() => {
+        showToast('删除失败', 'error');
+      });
+    }
+
+    function showUploadModal() {
+      if (uploadModalEl) {
+        uploadModalEl.classList.add('active');
+      }
+    }
+
+    function hideUploadModal() {
+      if (uploadModalEl) {
+        uploadModalEl.classList.remove('active');
+      }
+    }
+
+    // Toast 通知函数
+    function showToast(message, type = 'success', duration = 3000) {
+      // 如果消息为空，不显示 toast
+      if (!message || message.trim() === '') {
+        return;
+      }
+
+      const container = document.getElementById('toast-container');
+      if (!container) {
+        console.warn('Toast container not found');
+        return;
+      }
+
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+
+      const iconMap = {
+        success: '✅',
+        error: '❌',
+        info: 'ℹ️',
+        warning: '⚠️'
+      };
+
+      toast.innerHTML = `
+        <div class="toast-icon">${iconMap[type] || '✅'}</div>
+        <div class="toast-text">${message}</div>
+      `;
+
+      container.appendChild(toast);
+
+      // 触发动画
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 10);
+
+      // 自动移除
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          if (toast.parentNode === container) {
+            container.removeChild(toast);
+          }
+        }, 400);
+      }, duration);
+    }
+
+    // 兼容旧代码
+    function showMessage(text, type = '') {
+      const toastType = type === 'ok' ? 'success' : type;
+      showToast(text, toastType);
+    }
+
+    // 表单提交
+    document.getElementById('config-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!username) return;
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '保存中...';
+
+      const formData = new FormData();
+      formData.append('blessing', blessingEl.value || '');
+      const photosInput = document.getElementById('photos');
+      const files = photosInput.files;
+      for (let i = 0; i < files.length; i++) {
+        formData.append('photos', files[i]);
+      }
+
+      if (files.length > 0) {
+        showUploadModal();
+      }
+
+      fetch('/api/config/' + encodeURIComponent(username), {
+        method: 'POST',
+        body: formData
+      })
+      .then(r => r.json())
+      .then(data => {
+        hideUploadModal();
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span style="position: relative; z-index: 1;">保存配置</span>';
+
+        if (!data || !data.ok) {
+          showToast('❌ ' + ((data && data.error) || '保存失败'), 'error');
+          return;
+        }
+
+        showToast('保存成功！', 'success', 2000);
+
+        if (data.shortUrl) {
+          const url = location.origin + data.shortUrl;
+          renderShortLink(url);
+        }
+
+        // 重新加载图片列表
+        setTimeout(() => {
+          loadUserData();
+          photosInput.value = '';
+        }, 500);
+      })
+      .catch(() => {
+        hideUploadModal();
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span style="position: relative; z-index: 1;">保存配置</span>';
+        showToast('❌ 网络错误', 'error');
+      });
+    });
+
+    // 文件选择提示
+    document.getElementById('photos').addEventListener('change', function(e) {
+      const fileLabel = document.querySelector('.file-label');
+      const count = e.target.files.length;
+      if (count > 0) {
+        fileLabel.innerHTML = `<span class="file-label-icon">✅</span><span>已选择 ${count} 张照片</span>`;
+      } else {
+        fileLabel.innerHTML = `<span class="file-label-icon">📁</span><span>点击选择照片（可多选）</span>`;
+      }
+    });
+  </script>
+</body>
+</html>

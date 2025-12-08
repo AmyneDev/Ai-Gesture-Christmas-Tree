@@ -1,0 +1,15 @@
+{
+  "name": "gesture-christmas-tree-3d-with-photo",
+  "version": "1.0.0",
+  "description": "3D Christmas tree with per-user photo configuration and short links.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "multer": "^2.0.2",
+    "morgan": "^1.10.0"
+  }
+}
